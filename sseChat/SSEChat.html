@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSE Chat</title>
+  <style>
+    *{
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-size: 20px;
+    }
+    body{
+      width: 50%;
+      margin: 20px auto 0;
+    }
+    div{
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+<input id="input" style="width: 100%; padding: 10px; border: solid black 2px" />
+</body>
+</html>
+<script>
+    let nick = prompt("Введите ваш логин:")
+    let input = document.getElementById("input")
+    input.focus()
+
+    let chat = new EventSource("/chat")
+    chat.addEventListener("chat", event => {
+        let div = document.createElement("div")
+        div.append(event.data)
+        input.before(div)
+        input.scrollIntoView()
+    })
+
+    input.addEventListener("change", ()=>{
+        fetch("/chat", {
+            method: "POST",
+            body: nick + ": " + input.value
+        })
+        .catch(e => console.error())
+        input.value = ""
+    })
+</script>

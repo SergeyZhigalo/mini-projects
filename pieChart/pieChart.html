@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Pie chart</title>
+</head>
+<body>
+  <div id="chart"></div>
+</body>
+</html>
+<script src="pieChart.js"></script>
+<script>
+  document.querySelector("#chart").append(pieChart({
+    width: 640,
+    height: 400,
+    cx: 200,
+    cy: 200,
+    r: 180,
+    lx: 400,
+    ly: 10,
+    data: {
+      "1": 10,
+      "2": 20,
+      "3": 30,
+      "4": 40,
+    }
+  }))
+</script>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>ThinkingOfANumber</title>
+  <style>
+    body{
+      height: 250px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-evenly;
+    }
+    #heading{
+      font: bold 36px sans-serif;
+      margin: 0;
+    }
+    #container{
+      border: solid black 1px;
+      height: 1em;
+      width: 80%;
+    }
+    #range{
+      background-color: green;
+      margin-left: 0;
+      height: 1em;
+      width: 100%;
+    }
+    #input{
+      display: block;
+      font-size: 24px;
+      width: 35%;
+      padding: 5px;
+    }
+    #playagain{
+      font-size: 24px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="heading">Я думаю о числе...</h1>
+  <div id="container"><div id="range"></div></div>
+  <input type="text" id="input">
+  <button id="playagain" hidden onclick="location.search=''"> Играть снова </button>
+</body>
+</html>
+<script>
+  class GameState{
+    static newGame(){
+      let s = new GameState()
+      s.secret = s.randomInt(0, 100)
+      s.low = 0
+      s.high = 100
+      s.numGuesses = 0
+      s.guess = null
+      return s
+    }
+    static fromStateObject(stateObject){
+      let s = new GameState()
+      for (let key of Object.keys(stateObject)){
+        s[key] = stateObject[key]
+      }
+      return s
+    }
+    toURL(){
+      let url = new URL(window.location)
+      url.searchParams.set("l", this.low)
+      url.searchParams.set("h", this.high)
+      url.searchParams.set("n", this.numGuesses)
+      url.searchParams.set("g", this.guess)
+      return url.href
+    }
+    static fromURL(url){
+      let s = new GameState()
+      let params = new URL(url).searchParams
+      s.low = parseInt(params.get("l"))
+      s.high = parseInt(params.get("h"))
+      s.numGuesses = parseInt(params.get("n"))
+      s.guess = parseInt(params.get("g"))
+      if (isNaN(s.low) || isNaN(s.high)|| isNaN(s.numGuesses)|| isNaN(s.guess)){
+        return null
+      }
+      s.secret = s.randomInt(s.low, s.high)
+      return s
+    }
+    randomInt(min, max){
+      return min + Math.ceil(Math.random() * (max-min-1))
+    }
+    render(){
+      let heading = document.querySelector("#heading")
+      let range = document.querySelector("#range")
+      let input = document.querySelector("#input")
+      let playagain = document.querySelector("#playagain")
+      heading.textContent = document.title = `Я думаю о числе между ${this.low} и ${this.high}`
+      range.style.marginLeft = `${this.low}%`
+      range.style.width = `${(this.high-this.low)}%`
+      input.value = ""
+      input.focus()
+      if (this.guess === null){
+        input.placeholder = "Введите число и нажмите Enter"
+      }else if(this.guess < this.secret){
+        input.placeholder = `${this.guess} слишком маленькое. Угадай еще раз`
+      }else if(this.guess > this.secret){
+        input.placeholder = `${this.guess} слишком большое. Угадай еще раз`
+      }else{
+        input.placeholder = document.title = `${this.guess} верное число!`
+        heading.textContent = `Вы выиграли за ${this.numGuesses} ходов!`
+        playagain.hidden = false
+      }
+    }
+    updateForGuess(guess){
+      if ((guess > this.low) && (guess < this.high)){
+        if (guess < this.secret) this.low = guess
+        else if(guess > this.secret) this.high = guess
+        this.guess = guess
+        this.numGuesses++
+        return true
+      }else{
+        alert(`Пожалуйста, введите число больше, чем ${this.low} и меньше чем ${this.high}`)
+        return false
+      }
+    }
+  }
+
+  let gamestate = GameState.fromURL(window.location) || GameState.newGame()
+  history.replaceState(gamestate, "", gamestate.toURL())
+  gamestate.render()
+  document.querySelector("#input").onchange = (event) => {
+    if (gamestate.updateForGuess(parseInt(event.target.value))){
+      history.pushState(gamestate, "", gamestate.toURL())
+    }
+    gamestate.render()
+  }
+  window.onpopstate = (event) => {
+    gamestate = GameState.fromStateObject(event.state)
+    gamestate.render()
+  }
+</script>
